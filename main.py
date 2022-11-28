@@ -7,5 +7,14 @@ client = HttpClient(token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAyLCJm
 # response, meta = asyncio.run(client.call_api("health", "GET"))
 # print(response.json())
 
-response, meta = asyncio.run(client.call_api("health", "GET"))
-print(response.json())
+response, meta = asyncio.run(client.call_api(path="neurons/webhook", http_method="POST", json={
+  'scope': '549',
+  'event': {
+    'type': 'dataNode:onUpdate',
+    'nodeId': 'ao8ZlBJkND-NrQ2dsrAMQ',
+    'neuronId': 'f4736706-9c92-44af-a70f-5299130056cb',
+    'scope': '549',
+    'mount': 'data'
+  }
+}))
+print(response.text)

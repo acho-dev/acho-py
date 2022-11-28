@@ -76,7 +76,7 @@ class HttpClient:
         if (http_method == "GET"):
             res = requests.get(url=api_url)
         elif (http_method == "POST"):
-            res = requests.post(url=api_url)
+            res = requests.post(url=api_url, json=req_args.get('json'))
         data = {
             "client": self,
             "http_method": http_method,
