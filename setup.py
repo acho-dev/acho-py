@@ -43,7 +43,7 @@ class BaseCommand(Command):
 
 
 class UploadCommand(BaseCommand):
-    """Support setup.py upload. Thanks @kennethreitz!"""
+    """Support setup.py upload"""
 
     description = "Build and publish the package."
 
