@@ -117,23 +117,4 @@ def get_user_agent(prefix: Optional[str] = None, suffix: Optional[str] = None):
     prefix = f"{prefix} " if prefix else ""
     suffix = f" {suffix}" if suffix else ""
     return prefix + user_agent_string + suffix
-
-def convert_bool_to_0_or_1(params: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Converts all bool values in dict to "0" or "1".
-    Acho APIs safely accept "0"/"1" as boolean values.
-    Using True/False (bool in Python) doesn't work with aiohttp.
-    This method converts only the bool values in top-level of a given dict.
-    Args:
-        params: params as a dict
-    Returns:
-        Modified dict
-    """
-    if params:
-        return {k: _to_0_or_1_if_bool(v) for k, v in params.items()}
-    return None
-
-def _to_0_or_1_if_bool(v: Any) -> Union[Any, str]:
-    if isinstance(v, bool):
-        return "1" if v else "0"
-    return v
     

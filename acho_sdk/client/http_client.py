@@ -5,7 +5,7 @@ import socketio
 
 from typing import Optional, Union, Dict, Any, List
 
-from .client_utils import _build_req_args, _get_url, convert_bool_to_0_or_1
+from .client_utils import _build_req_args, _get_url
 
 class HttpClient:
     BASE_URL = os.environ.get("ACHO_PYTHON_SDK_BASE_URL") or ""
@@ -68,9 +68,6 @@ class HttpClient:
                 }
             }
         """
-        if "params" in req_args:
-            # True/False -> "1"/"0"
-            req_args["params"] = convert_bool_to_0_or_1(req_args["params"])
 
         res = {}
         

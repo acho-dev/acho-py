@@ -1,0 +1,4 @@
+
+[testing]
+gevent_socketio>=0.3.6
+requests>=2.25.1
