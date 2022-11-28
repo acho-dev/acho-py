@@ -101,7 +101,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    keywords="acho serverless faas",
+    keywords="acho serverless faas container",
     install_requires=[],
     extras_require={
         # pip install -e ".[testing]"
