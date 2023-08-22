@@ -1,30 +1,13 @@
 Metadata-Version: 2.1
 Name: acho-sdk
 Version: 0.0.1
-Summary: The Acho SDK for Python
-Home-page: https://bitbucket.org/unibit_web/acho-py/src/master/
-Author: Acho Software Inc.
-Author-email: dev@acho.io
-License: MIT
-Keywords: acho serverless faas
-Platform: UNKNOWN
-Classifier: Development Status :: 2 - Pre-Alpha
-Classifier: Intended Audience :: Developers
-Classifier: Topic :: Communications :: Chat
-Classifier: Topic :: System :: Networking
-Classifier: Topic :: Office/Business
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python
+Summary: Acho Python SDK
+Author-email: Timothy Zhang <jianhao@acho.io>
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.11
-Requires-Python: >=3.6.0
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
-Provides-Extra: testing
 
 # README #
 
@@ -55,4 +38,3 @@ This README would normally document whatever steps are necessary to get your app
 
 * Repo owner or admin
 * Other community or team contact
-
