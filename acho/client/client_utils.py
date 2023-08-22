@@ -3,7 +3,7 @@ import platform
 import sys
 from typing import Any, Optional, Union, Dict
 from urllib.parse import urljoin
-from acho_sdk import version
+from acho import version
 
 def _get_url(base_url: str, path: str) -> str:
     """Join the base_url with path
