@@ -1,8 +1,9 @@
 Metadata-Version: 2.1
-Name: acho-sdk
-Version: 0.0.5
+Name: acho
+Version: 0.0.2
 Summary: Acho Python SDK
 Author-email: Timothy Zhang <timothy@acho.io>
+Project-URL: Homepage, https://bitbucket.org/unibit_web/acho-py/src/master/?search_id=04c28e81-6ceb-425f-a75b-fdfdf541ba31
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent

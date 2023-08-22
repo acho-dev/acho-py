@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "acho_sdk"
-version = "0.0.2"
+version = "0.0.5"
 authors = [
   { name="Timothy Zhang", email="timothy@acho.io" },
 ]
@@ -16,5 +16,3 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-[project.urls]
-"Homepage" = "https://bitbucket.org/unibit_web/acho-py/src/master/?search_id=04c28e81-6ceb-425f-a75b-fdfdf541ba31"

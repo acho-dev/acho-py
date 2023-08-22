@@ -24,10 +24,17 @@ class SocketClient:
     async def conn(self, namespaces: Optional[list] = None):
         print(namespaces or self.socket_namespaces)
         try:
-            await self.sio.connect(url=self.base_url, headers={ 'Authorization': '{} {}'.format('jwt', self.token) }, transports="polling")
+            authenticated_url = f'{self.base_url}?token=jwt {self.token}'
+            print(authenticated_url)
+            await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
         except Exception as e:
             print(e)
-        
+
+    def hook(self, event: str, callback):
+        @self.sio.on(event, namespace='/soc')
+        async def on_message(data):
+            print(data)
+            return await callback(data)
 
     @sio.on('connect', namespace='/soc')
     def on_connect():
