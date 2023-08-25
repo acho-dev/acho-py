@@ -20,7 +20,6 @@ class SocketClient:
         self.default_params = {}
         self.sio = sio
 
-
     async def conn(self, namespaces: Optional[list] = None):
         print(namespaces or self.socket_namespaces)
         try:
@@ -51,10 +50,10 @@ class SocketClient:
         print('disconnected from server')
         return
 
-    @sio.on('*', namespace='/soc')
-    async def catch_all(event, data):
-        print(event)
-        print(data)
-        return
+    # @sio.on('*', namespace='/soc')
+    # async def catch_all(event, data):
+    #     print(event)
+    #     print(data)
+    #     return
 
     
