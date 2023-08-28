@@ -8,32 +8,41 @@ class SocketClient:
     BASE_SOCKET_NAMESPACES = ['/soc']
     sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
-    def __init__(self, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = 30):
+    def __init__(self, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = 30, notebook_name = 'unknown_notebook'):
         self.token = None if token is None else token.strip()
         """A JWT Token"""
         self.base_url = base_url
         self.socket_namespaces = socket_namespaces
+        self.default_namespace = '/soc'
         """A string representing the Acho API base URL.
         Default is `'https://kube.acho.io'`."""
         self.timeout = timeout
         """The maximum number of seconds client staying alive"""
         self.default_params = {}
         self.sio = sio
+        self.notebook_name = notebook_name
 
     async def conn(self, namespaces: Optional[list] = None):
         print(namespaces or self.socket_namespaces)
         try:
             authenticated_url = f'{self.base_url}?token=jwt {self.token}'
-            print(authenticated_url)
-            await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
+            result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
+            return result
         except Exception as e:
             print(e)
 
+    def default_handlers(self):
+        self.sio.on('notebook_detect', namespace='/soc', handler=self.notebook_detect)
+
     def hook(self, event: str, callback):
-        @self.sio.on(event, namespace='/soc')
-        async def on_message(data):
-            print(data)
-            return await callback(data)
+        self.sio.on(event, namespace='/soc', handler=callback)
+        
+    async def notebook_detect(self, data):
+        print(data)
+        print('notebook detection request')
+        app_version_id = data['app_version_id']
+        detect_result = await self.sio.emit('notebook_ready', data={'app_version_id': app_version_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
+        print(detect_result)
 
     @sio.on('connect', namespace='/soc')
     def on_connect():
@@ -50,10 +59,10 @@ class SocketClient:
         print('disconnected from server')
         return
 
-    # @sio.on('*', namespace='/soc')
-    # async def catch_all(event, data):
-    #     print(event)
-    #     print(data)
-    #     return
+    @sio.on('*', namespace='/soc')
+    async def catch_all(event, data):
+        print(event)
+        print(data)
+        return
 
     

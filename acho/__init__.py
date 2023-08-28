@@ -1,5 +1,5 @@
 from .client import HttpClient
-from .client import AppClient
 from .client import SocketClient
+from .client import App
 
-__all__ = ["HttpClient", "AppClient", "SocketClient"]
+__all__ = ["HttpClient", "SocketClient", "App"]
