@@ -70,6 +70,7 @@ class AppVersion():
         event.update({'scope': self.app_version_id})
         event.update({'type': 'notebook_event'})
         event.update({'notebook_name': self.socket.notebook_name})
+        event.update({'nodeId': self.socket.node_id})
         payload = {
             'scope': self.app_version_id,
             'event': event

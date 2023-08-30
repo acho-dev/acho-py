@@ -22,6 +22,7 @@ class SocketClient:
         self.default_params = {}
         self.sio = sio
         self.notebook_name = notebook_name
+        self.node_id = None
 
     async def conn(self, namespaces: Optional[list] = None):
         print(namespaces or self.socket_namespaces)
@@ -51,6 +52,7 @@ class SocketClient:
 
     def default_handlers(self):
         self.sio.on('notebook_detect', namespace=self.default_namespace, handler=self.notebook_detect)
+        self.sio.on('notebook_claim', namespace=self.default_namespace, handler=self.notebook_claim)
 
     def hook(self, event: str, callback):
         self.sio.on(event, namespace=self.default_namespace, handler=callback)
@@ -59,8 +61,23 @@ class SocketClient:
         print(data)
         print('notebook detection request')
         app_version_id = data['app_version_id']
-        detect_result = await self.sio.emit('notebook_ready', data={'app_version_id': app_version_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
+        detect_result = await self.sio.emit('notebook_ready', data={'app_version_id': app_version_id, 'nodeId': self.node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
         print(detect_result)
+
+    async def notebook_claim(self, data):
+        print(data)
+        print('notebook claim request')
+        app_version_id = data['app_version_id']
+        notebook_name = data['notebook_name']
+        node_id = data['nodeId']
+        if (notebook_name == self.notebook_name):
+            self.node_id = node_id
+            if (node_id):
+                detect_result = await self.sio.emit('notebook_claimed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
+                print(detect_result)
+            else:
+                await self.sio.emit('notebook_claim_failed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
+                print('node_id is missing')
 
     @sio.on('connect', namespace='/soc')
     def on_connect():
