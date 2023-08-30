@@ -38,42 +38,45 @@ class AppVersion():
     sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
     def __init__(self, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = ACHO_CLIENT_TIMEOUT):
-        self.socket = SocketClient(token=token, base_url=base_url, socket_namespaces=socket_namespaces, sio=sio, timeout=timeout)
+        self.socket_url = f'{base_url}{DEFAULT_SOCKET_NAMESPACE}'
+        self.socket = SocketClient(token=token, base_url=self.socket_url, socket_namespaces=socket_namespaces, sio=sio, timeout=timeout)
         self.http = HttpClient(token=token, base_url=base_url, timeout=timeout)
         self.app_version_id = app_version_id
         return
     
-    def connect(self, namespaces: Optional[list] = None):
+    async def connect(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
         try:
             self.socket.default_handlers()
-            result = asyncio.run(self.socket.conn(namespaces=namespaces))
+            result = await self.socket.conn(namespaces=namespaces)
             return result
         except Exception as e:
             print(e)
 
-    def join(self, namespaces: Optional[list] = None):
+    async def join(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
         print({'app_version_id': self.app_version_id, 'is_editing': True})
-        result = asyncio.run(self.socket.emit('join_app_builder_room', {'app_version_id': self.app_version_id}, namespace=namespaces))
+        result = await self.socket.sio.emit('join_app_builder_room', {'app_version_id': self.app_version_id}, namespace=namespaces)
         return result
 
-    def send_webhook(self, event: dict):
-        event.update({'scope': self.app_version_id})
-        payload = {
-            'scope': self.app_version_id,
-            'event': event
-        }
-        response, text = asyncio.run(self.http.call_api(path="neurons/webhook", http_method="POST", json=payload))
-        return (response, text)
+    # def send_webhook(self, event: dict):
+    #     event.update({'scope': self.app_version_id})
+    #     payload = {
+    #         'scope': self.app_version_id,
+    #         'event': event
+    #     }
+    #     response, text = asyncio.run(self.http.call_api(path="neurons/webhook", http_method="POST", json=payload))
+    #     return (response, text)
     
-    async def async_send_webhook(self, event: dict):
+    async def send_webhook(self, event: dict):
         event.update({'scope': self.app_version_id})
+        event.update({'type': 'notebook_event'})
+        event.update({'notebook_name': self.socket.notebook_name})
         payload = {
             'scope': self.app_version_id,
             'event': event
         }
         return await self.http.call_api(path="neurons/webhook", http_method="POST", json=payload)
     
-    def push_event(self, event: dict):
+    async def push_event(self, event: dict):
         event.update({'scope': self.app_version_id})
-        asyncio.run(self.socket.sio.emit('push', event, namespace=DEFAULT_SOCKET_NAMESPACE))
-        return
+        result = await self.socket.sio.emit('push', event, namespace=DEFAULT_SOCKET_NAMESPACE)
+        return result

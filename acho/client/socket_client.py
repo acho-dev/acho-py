@@ -2,6 +2,7 @@ import asyncio
 import os
 from typing import Optional
 import socketio
+import ipynbname
 
 class SocketClient:
     BASE_URL = os.environ.get("ACHO_PYTHON_SDK_BASE_URL") or ""
@@ -26,16 +27,33 @@ class SocketClient:
         print(namespaces or self.socket_namespaces)
         try:
             authenticated_url = f'{self.base_url}?token=jwt {self.token}'
+            print(authenticated_url)
             result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
             return result
         except Exception as e:
             print(e)
 
+    def get_notebook_attr(self):
+        try:
+            ip = get_ipython()
+            hm = ip.history_manager
+            ipsession = hm.get_session_info()
+            dt = ipsession[1]
+            dt_string = dt.strftime("%s")
+            ipname = ipynbname.name()
+            ipsession = hm.get_session_info()
+            self.notebook_name = ipname
+            self.started_at = dt_string
+            print(ipsession)
+            return
+        except Exception as e:
+            print('Please run this command in a notebook')
+
     def default_handlers(self):
-        self.sio.on('notebook_detect', namespace='/soc', handler=self.notebook_detect)
+        self.sio.on('notebook_detect', namespace=self.default_namespace, handler=self.notebook_detect)
 
     def hook(self, event: str, callback):
-        self.sio.on(event, namespace='/soc', handler=callback)
+        self.sio.on(event, namespace=self.default_namespace, handler=callback)
         
     async def notebook_detect(self, data):
         print(data)
