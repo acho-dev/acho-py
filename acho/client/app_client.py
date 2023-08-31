@@ -63,8 +63,22 @@ class AppVersion():
         return result
     
     async def nb_nodes(self):
-        response, text = await self.http.call_api(path=f"/apps/{self.app_id}/versions/{self.app_version_id}/nb-nodes", http_method="GET")
-        return (response, text)
+        nodes = await self.http.call_api(path=f"/apps/{self.app_id}/versions/{self.app_version_id}/nb-nodes", http_method="GET")
+        return nodes
+    
+    async def nb_claim(self):
+        nodes = await self.nb_nodes()
+        for node in nodes:
+            if node['endpointUrl'] == self.socket.notebook_name:
+                self.socket.node_id = node['id']
+                break
+        if self.socket.node_id is None:
+            print('Current nodebook is not claimed by any node')
+            return
+        else:
+            print('Current nodebook is claimed by node: ', self.socket.node_id)
+            await self.socket.notebook_detect({'app_version_id': self.app_version_id})
+            return
     
     async def send_webhook(self, event: dict):
         event.update({'scope': self.app_version_id})

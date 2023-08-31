@@ -34,6 +34,7 @@ class HttpClient:
                 headers["Authorization"] = '{} {}'.format(auth.token_type, auth.token)
         else:
             headers = {}
+            headers["Content-Type"] = 'application/json;charset=utf-8'
             headers["Authorization"] = 'jwt {}'.format(self.token)
 
         headers = headers or {}
@@ -48,11 +49,14 @@ class HttpClient:
             auth=auth,
         )
 
-        return await self._send(
+        req_result = await self._send(
             http_method=http_method,
             api_url=api_url,
             req_args=req_args,
         )
+        response = req_result[0]
+        metadata = req_result[1]
+        return response.json()
 
     async def _send(self, http_method: str, api_url: str, req_args: dict) -> Any:
         """Sends the request out for transmission.
@@ -72,11 +76,12 @@ class HttpClient:
         res = {}
         
         print(req_args)
+        print(http_method)
 
         if (http_method == "GET"):
-            res = requests.get(url=api_url)
+            res = requests.get(url=api_url, headers=req_args.get('headers'), params=req_args.get('params'))
         elif (http_method == "POST"):
-            res = requests.post(url=api_url, json=req_args.get('json'))
+            res = requests.post(url=api_url, headers=req_args.get('headers'), params=req_args.get('params'), json=req_args.get('json'))
         data = {
             "client": self,
             "http_method": http_method,
