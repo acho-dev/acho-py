@@ -27,7 +27,7 @@ class App():
         return (response, text)
     
     def version(self, app_version_id: str):
-        return AppVersion(app_version_id=app_version_id, token=self.http.token, base_url=self.http.base_url, timeout=self.http.timeout)
+        return AppVersion(app_id=self.app_id, app_version_id=app_version_id, token=self.http.token, base_url=self.http.base_url, timeout=self.http.timeout)
     
     def push_event(self, event: dict):
         print('Please specify version before publishing events')
@@ -37,10 +37,11 @@ class AppVersion():
     
     sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
-    def __init__(self, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = ACHO_CLIENT_TIMEOUT):
+    def __init__(self, app_id: str, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = ACHO_CLIENT_TIMEOUT):
         self.socket_url = f'{base_url}{DEFAULT_SOCKET_NAMESPACE}'
         self.socket = SocketClient(token=token, base_url=self.socket_url, socket_namespaces=socket_namespaces, sio=sio, timeout=timeout)
         self.http = HttpClient(token=token, base_url=base_url, timeout=timeout)
+        self.app_id = app_id
         self.app_version_id = app_version_id
         return
     
@@ -57,14 +58,13 @@ class AppVersion():
         result = await self.socket.sio.emit('join_app_builder_room', {'app_version_id': self.app_version_id}, namespace=namespaces)
         return result
 
-    # def send_webhook(self, event: dict):
-    #     event.update({'scope': self.app_version_id})
-    #     payload = {
-    #         'scope': self.app_version_id,
-    #         'event': event
-    #     }
-    #     response, text = asyncio.run(self.http.call_api(path="neurons/webhook", http_method="POST", json=payload))
-    #     return (response, text)
+    async def leave(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
+        result = await self.socket.sio.emit('leave_app_builder_room', {'app_version_id': self.app_version_id}, namespace=namespaces)
+        return result
+    
+    async def nb_nodes(self):
+        response, text = await self.http.call_api(path=f"/apps/{self.app_id}/versions/{self.app_version_id}/nb-nodes", http_method="GET")
+        return (response, text)
     
     async def send_webhook(self, event: dict):
         event.update({'scope': self.app_version_id})
