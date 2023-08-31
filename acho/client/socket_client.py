@@ -32,7 +32,7 @@ class SocketClient:
             result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
             return result
         except Exception as e:
-            print(e)
+            raise Exception(f"Socket connection failed with error {e}")
 
     def get_notebook_attr(self):
         try:

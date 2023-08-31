@@ -22,13 +22,20 @@ class App():
         self.app_id = id
         return
 
-    def versions(self):
-        response, text = asyncio.run(self.http.call_api(path=f"{APP_ENDPOINTS}/{self.id}/versions", http_method="GET"))
-        return (response, text)
+    async def versions(self):
+        versions = await self.http.call_api(path=f"{APP_ENDPOINTS}/{self.app_id}/versions", http_method="GET")
+        return versions
     
     def version(self, app_version_id: str):
         return AppVersion(app_id=self.app_id, app_version_id=app_version_id, token=self.http.token, base_url=self.http.base_url, timeout=self.http.timeout)
     
+    async def version_published(self):
+        versions = await self.versions()
+        for version in versions:
+            if version['status'] in ['published']:
+                return AppVersion(app_id=self.app_id, app_version_id=version['id'], token=self.http.token, base_url=self.http.base_url, timeout=self.http.timeout)
+        raise('No published version found for app: ', self.app_id)
+            
     def push_event(self, event: dict):
         print('Please specify version before publishing events')
         return
@@ -47,11 +54,12 @@ class AppVersion():
     
     async def connect(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
         try:
+            await self.http.identify()
             self.socket.default_handlers()
             result = await self.socket.conn(namespaces=namespaces)
             return result
         except Exception as e:
-            print(e)
+            raise Exception(e)
 
     async def join(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
         print({'app_version_id': self.app_version_id, 'is_editing': True})

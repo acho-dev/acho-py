@@ -20,6 +20,9 @@ class HttpClient:
         """The maximum number of seconds client staying alive"""
         self.default_params = {}
 
+    async def identify(self):
+        return await self.call_api(path="/auth/identify", http_method="GET")
+
     async def call_api(self, path, http_method: str = "POST", params: Optional[dict] = None,
         json: Optional[dict] = None,
         headers: Optional[dict] = None,
@@ -56,7 +59,10 @@ class HttpClient:
         )
         response = req_result[0]
         metadata = req_result[1]
-        return response.json()
+        if response.status_code >= 400:
+            raise Exception(f"Request failed with status code {response.status_code} and message {response.text}")
+        else:
+            return response.json()
 
     async def _send(self, http_method: str, api_url: str, req_args: dict) -> Any:
         """Sends the request out for transmission.
