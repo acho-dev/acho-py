@@ -78,6 +78,8 @@ class AppVersion():
             result = await self.socket.conn(namespaces=namespaces)
             self.connected = True
             self.version_default_handlers()
+            await self.join()
+            await self.nb_claim()
             return result
         except Exception as e:
             self.connected = False
@@ -90,6 +92,7 @@ class AppVersion():
             #     await self.connect()
             if (self.joined):
                 await self.join()
+                await self.nb_claim()
             return
         except Exception as e:
             raise Exception(e)
