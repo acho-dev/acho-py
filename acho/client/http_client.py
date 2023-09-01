@@ -62,7 +62,10 @@ class HttpClient:
         if response.status_code >= 400:
             raise Exception(f"Request failed with status code {response.status_code} and message {response.text}")
         else:
-            return response.json()
+            try:
+                return response.json()
+            except Exception as e:
+                return response.text
 
     async def _send(self, http_method: str, api_url: str, req_args: dict) -> Any:
         """Sends the request out for transmission.

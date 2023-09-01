@@ -15,7 +15,7 @@ APP_ENDPOINTS = 'apps'
 
 class App():
     
-    sio = socketio.AsyncClient(logger=True, engineio_logger=True)
+    # sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
     def __init__(self, id: str, token: Optional[str] = ACHO_TOKEN, base_url = BASE_URL, timeout = ACHO_CLIENT_TIMEOUT):
         self.http = HttpClient(token=token, base_url=base_url, timeout=timeout)
@@ -41,10 +41,8 @@ class App():
         return
     
 class AppVersion():
-    
-    sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
-    def __init__(self, app_id: str, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = ACHO_CLIENT_TIMEOUT):
+    def __init__(self, app_id: str, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = socketio.AsyncClient(logger=True, engineio_logger=True), timeout = ACHO_CLIENT_TIMEOUT):
         self.socket_url = f'{base_url}{DEFAULT_SOCKET_NAMESPACE}'
         self.socket = SocketClient(token=token, base_url=self.socket_url, socket_namespaces=socket_namespaces, sio=sio, timeout=timeout)
         self.http = HttpClient(token=token, base_url=base_url, timeout=timeout)
