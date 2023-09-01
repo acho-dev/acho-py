@@ -1,13 +1,16 @@
 import asyncio
+import logging
 import os
 from typing import Optional
 import socketio
 import ipynbname
 
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+
 class SocketClient:
     BASE_URL = os.environ.get("ACHO_PYTHON_SDK_BASE_URL") or ""
     BASE_SOCKET_NAMESPACES = ['/soc']
-    sio = socketio.AsyncClient(logger=True, engineio_logger=True)
+    sio = socketio.AsyncClient(logger=True, engineio_logger=False)
 
     def __init__(self, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = 30, notebook_name = 'unknown_notebook'):
         self.token = None if token is None else token.strip()
@@ -25,13 +28,18 @@ class SocketClient:
         self.node_id = None
 
     async def conn(self, namespaces: Optional[list] = None):
-        print(namespaces or self.socket_namespaces)
+        logging.debug(f"Connecting to namespace {namespaces or self.socket_namespaces}")
         try:
             authenticated_url = f'{self.base_url}?token=jwt {self.token}'
-            print(authenticated_url)
-            result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
-            return result
+            logging.debug(f'authenticated_url: {authenticated_url}')
+            if (self.sio.connected):
+                logging.debug('already connected')
+                return
+            else:
+                result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
+                return result
         except Exception as e:
+            logging.error(f"Socket connection failed with error {e}")
             raise Exception(f"Socket connection failed with error {e}")
 
     def get_notebook_attr(self):
@@ -45,10 +53,9 @@ class SocketClient:
             ipsession = hm.get_session_info()
             self.notebook_name = ipname
             self.started_at = dt_string
-            print(ipsession)
             return
         except Exception as e:
-            print('Please run this command in a notebook')
+            logging.error('Please run this command in a notebook')
 
     def default_handlers(self):
         self.sio.on('notebook_detect', namespace=self.default_namespace, handler=self.notebook_detect)
@@ -56,17 +63,17 @@ class SocketClient:
 
     def hook(self, event: str, callback):
         self.sio.on(event, namespace=self.default_namespace, handler=callback)
+
+    # async def event_parser(self, callback):
+    #     return lambda data: (await callback(data) for _ in '_').__anext__()
         
     async def notebook_detect(self, data):
-        print(data)
-        print('notebook detection request')
+        logging.debug('notebook detection request')
         app_version_id = data['app_version_id']
         detect_result = await self.sio.emit('notebook_ready', data={'app_version_id': app_version_id, 'nodeId': self.node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
-        print(detect_result)
 
     async def notebook_claim(self, data):
-        print(data)
-        print('notebook claim request')
+        logging.debug('notebook claim request')
         app_version_id = data['app_version_id']
         notebook_name = data['notebook_name']
         node_id = data['nodeId']
@@ -74,30 +81,27 @@ class SocketClient:
             self.node_id = node_id
             if (node_id):
                 detect_result = await self.sio.emit('notebook_claimed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
-                print(detect_result)
             else:
                 await self.sio.emit('notebook_claim_failed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
-                print('node_id is missing')
+                logging.warn('node_id is missing')
 
     @sio.on('connect', namespace='/soc')
     def on_connect():
-        print("I'm connected to the /soc namespace!")
+        logging.debug("I'm connected to the /soc namespace!")
         return
     
     @sio.event
     async def connect():
-        print('connected to server')
+        logging.info('connected to server')
         return
 
     @sio.event
     async def disconnect():
-        print('disconnected from server')
+        logging.info('disconnected from server')
         return
 
     @sio.on('*', namespace='/soc')
     async def catch_all(event, data):
-        print(event)
-        print(data)
         return
 
     

@@ -84,8 +84,8 @@ class HttpClient:
 
         res = {}
         
-        print(req_args)
-        print(http_method)
+        # print(req_args)
+        # print(http_method)
 
         if (http_method == "GET"):
             res = requests.get(url=api_url, headers=req_args.get('headers'), params=req_args.get('params'))

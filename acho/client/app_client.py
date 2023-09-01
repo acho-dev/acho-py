@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from typing import Optional
 
@@ -12,6 +13,8 @@ BASE_SOCKET_NAMESPACES = ['/soc']
 DEFAULT_SOCKET_NAMESPACE = '/soc'
 ACHO_CLIENT_TIMEOUT = 30
 APP_ENDPOINTS = 'apps'
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 class App():
     
@@ -37,7 +40,7 @@ class App():
         raise('No published version found for app: ', self.app_id)
             
     def push_event(self, event: dict):
-        print('Please specify version before publishing events')
+        logging.warning('Please specify version before publishing events')
         return
     
 class AppVersion():
@@ -60,7 +63,7 @@ class AppVersion():
             raise Exception(e)
 
     async def join(self, namespaces: Optional[list] = DEFAULT_SOCKET_NAMESPACE):
-        print({'app_version_id': self.app_version_id, 'is_editing': True})
+        logging.debug({'app_version_id': self.app_version_id, 'is_editing': True})
         result = await self.socket.sio.emit('join_app_builder_room', {'app_version_id': self.app_version_id}, namespace=namespaces)
         return result
 
@@ -79,10 +82,10 @@ class AppVersion():
                 self.socket.node_id = node['id']
                 break
         if self.socket.node_id is None:
-            print('Current nodebook is not claimed by any node')
+            logging.warning('Current nodebook is not claimed by any node')
             return
         else:
-            print('Current nodebook is claimed by node: ', self.socket.node_id)
+            logging.info(f'Current nodebook is claimed by node: {self.socket.node_id}')
             await self.socket.notebook_detect({'app_version_id': self.app_version_id})
             return
     
@@ -95,6 +98,8 @@ class AppVersion():
             'scope': self.app_version_id,
             'event': event
         }
+        logging.debug('sending webhook')
+        logging.debug(payload)
         return await self.http.call_api(path="neurons/webhook", http_method="POST", json=payload)
     
     async def push_event(self, event: dict):
