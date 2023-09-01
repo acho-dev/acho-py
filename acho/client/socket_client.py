@@ -26,6 +26,7 @@ class SocketClient:
         self.notebook_name = notebook_name
         self.node_id = None
         self.app_version_id = app_version_id
+        self.get_notebook_attr()
 
     async def conn(self, namespaces: Optional[list] = None):
         logger.debug(f"Connecting to namespace {namespaces or self.socket_namespaces}")
