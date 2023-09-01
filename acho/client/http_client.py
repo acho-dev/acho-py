@@ -7,6 +7,8 @@ from typing import Optional, Union, Dict, Any, List
 
 from .client_utils import _build_req_args, _get_url
 
+# TODO: Add support for multipart/form-data
+
 class HttpClient:
     BASE_URL = os.environ.get("ACHO_PYTHON_SDK_BASE_URL") or ""
 
