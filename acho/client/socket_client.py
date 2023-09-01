@@ -1,18 +1,17 @@
-import asyncio
 import logging
 import os
 from typing import Optional
 import socketio
 import ipynbname
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class SocketClient:
     BASE_URL = os.environ.get("ACHO_PYTHON_SDK_BASE_URL") or ""
     BASE_SOCKET_NAMESPACES = ['/soc']
-    sio = socketio.AsyncClient(logger=True, engineio_logger=False)
+    sio = socketio.AsyncClient(logger=False, engineio_logger=False)
 
-    def __init__(self, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = 30, notebook_name = 'unknown_notebook'):
+    def __init__(self, app_version_id: str, token: Optional[str] = None, base_url = BASE_URL, socket_namespaces = BASE_SOCKET_NAMESPACES, sio = sio, timeout = 30, notebook_name = 'unknown_notebook'):
         self.token = None if token is None else token.strip()
         """A JWT Token"""
         self.base_url = base_url
@@ -26,20 +25,22 @@ class SocketClient:
         self.sio = sio
         self.notebook_name = notebook_name
         self.node_id = None
+        self.app_version_id = app_version_id
 
     async def conn(self, namespaces: Optional[list] = None):
-        logging.debug(f"Connecting to namespace {namespaces or self.socket_namespaces}")
+        logger.debug(f"Connecting to namespace {namespaces or self.socket_namespaces}")
         try:
             authenticated_url = f'{self.base_url}?token=jwt {self.token}'
-            logging.debug(f'authenticated_url: {authenticated_url}')
+            logger.debug(f'authenticated_url: {authenticated_url}')
+            logger.debug(f'status: {self.sio.connected}')
             if (self.sio.connected):
-                logging.debug('already connected')
+                logger.debug('already connected')
                 return
             else:
                 result = await self.sio.connect(url=authenticated_url, namespaces=namespaces or self.socket_namespaces)
                 return result
         except Exception as e:
-            logging.error(f"Socket connection failed with error {e}")
+            logger.error(f"Socket connection failed with error {e}")
             raise Exception(f"Socket connection failed with error {e}")
 
     def get_notebook_attr(self):
@@ -55,7 +56,7 @@ class SocketClient:
             self.started_at = dt_string
             return
         except Exception as e:
-            logging.error('Please run this command in a notebook')
+            logger.error('Please run this command in a notebook')
 
     def default_handlers(self):
         self.sio.on('notebook_detect', namespace=self.default_namespace, handler=self.notebook_detect)
@@ -68,12 +69,14 @@ class SocketClient:
     #     return lambda data: (await callback(data) for _ in '_').__anext__()
         
     async def notebook_detect(self, data):
-        logging.debug('notebook detection request')
+        logger.debug('notebook detection request')
+        print('notebook detection request')
         app_version_id = data['app_version_id']
         detect_result = await self.sio.emit('notebook_ready', data={'app_version_id': app_version_id, 'nodeId': self.node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
 
     async def notebook_claim(self, data):
-        logging.debug('notebook claim request')
+        logger.debug('notebook claim request')
+        print('notebook claim request')
         app_version_id = data['app_version_id']
         notebook_name = data['notebook_name']
         node_id = data['nodeId']
@@ -83,25 +86,34 @@ class SocketClient:
                 detect_result = await self.sio.emit('notebook_claimed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
             else:
                 await self.sio.emit('notebook_claim_failed', data={'app_version_id': app_version_id, 'nodeId': node_id, 'notebook_name': self.notebook_name}, namespace=self.default_namespace)
-                logging.warn('node_id is missing')
+                logger.warn('node_id is missing')
+
+    def tag(self):
+        return f'[{self.app_version_id[-4:]}][{self.node_id[-4:]}]'
 
     @sio.on('connect', namespace='/soc')
     def on_connect():
-        logging.debug("I'm connected to the /soc namespace!")
+        # logger.debug("I'm connected to the /soc namespace!")
+        print("I'm connected to the /soc namespace!")
         return
     
     @sio.event
     async def connect():
-        logging.info('connected to server')
+        logger.info('connected to server')
         return
+    
+    @sio.event
+    async def connect_error(data):
+        print("The connection failed!")
 
     @sio.event
     async def disconnect():
-        logging.info('disconnected from server')
+        logger.info('disconnected from server')
         return
 
     @sio.on('*', namespace='/soc')
     async def catch_all(event, data):
+        logger.info(f'incoming event: {event}')
         return
 
     
