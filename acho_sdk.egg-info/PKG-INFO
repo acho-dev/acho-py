@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: acho-sdk
-Version: 0.2.3
+Version: 0.2.5
 Summary: Acho Python SDK
 Author-email: Timothy Zhang <timothy@acho.io>
 Classifier: Programming Language :: Python :: 3

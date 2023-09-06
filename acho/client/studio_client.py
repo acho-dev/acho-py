@@ -46,7 +46,7 @@ class AssetManager():
     
     async def download(self, filename, options = {}, destination = os.getcwd()):
         payload = {
-            'file': { 'path': self.path + filename },
+            'file': { 'path': os.path.join(self.path, filename) },
             'options': options,
         }
         # Save file stream to storage / memory
