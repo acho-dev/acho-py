@@ -44,14 +44,21 @@ class AssetManager():
         result = await self.http.call_api(path=f"/uploaded/file/upload", http_method="POST", params=params)
         return result
     
-    async def download(self, filename, options = {}):
+    async def download(self, filename, options = {}, destination = os.getcwd()):
         payload = {
             'file': { 'path': self.path + filename },
             'options': options,
         }
-        # TODO: Save file stream to storage / memory
-        # result = await self.http.call_api(path=f"/uploaded/download", http_method="POST", json=payload)
-        # return result
+        # Save file stream to storage / memory
+        http_stream = await self.http.stream_api(path=f"/uploaded/file/download", http_method="POST", json=payload)
+        if not os.path.exists(destination):
+            os.makedirs(destination)
+        destination_path = os.path.join(destination, filename)
+        with open(destination_path, 'wb') as f:
+            for chunk in http_stream.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        return destination_path
 
     async def get_url(self, filename, options = {}):
         payload = {
